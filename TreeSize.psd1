@@ -12,7 +12,7 @@
 RootModule = 'TreeSize.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.1'
+ModuleVersion = '2.0'
 
 # ID used to uniquely identify this module
 GUID = '7c23eb22-93a3-4b2b-abcf-f6a33eec0adf'
@@ -67,9 +67,8 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @"
-        The first release, but with the ProjectUri added.
-        A working Get-TreeSize that outputs FileSystemInfo objects with Length populated for folders
-        And some simple formatting to make it not stupid
+        This is the second release, and it sorts the output by size.
+        I also made the indent character settable, in case you want to use ascii "|--"
 "@
 
     } # End of PSData hashtable

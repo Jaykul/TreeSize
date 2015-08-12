@@ -14,33 +14,29 @@ function Get-TreeSize {
     #   But with properties added to them like Depth and with Length calculated for the folders
     #   Then a custom formmatter makes them come out like this:
     #
-    #.Example 
-    #   Get-TreeSize
+    # .Example
+    # Get-Treesize
+    # Localization\ 12021
+    # |-- En-US\     2025
+    # |-- En\        1339
+    # .Example
+    # Get-Treesize -ShowFiles
+    # Localization\           12021
+    # |-- Localization.psd1    6698
+    # |-- En-US\               2025
+    #    |-- UserSettings.psd1 1000
+    #    |-- Localization.psd1 958
+    #    |-- numbers.psd1      67
+    # |-- UserSettings.psd1    1959
+    # |-- En\                  1339
+    #    |-- UserSettings.psd1 1253
+    #    |-- numbers.psd1      86
+    # .Example
+    # Get-Treesize | Format-Custom
     #
-    #   Localization\ 12021
-    #   ├─ En\        1339
-    #   ├─ En-US\     2025
-    #
-    #.Example
-    #   Get-TreeSize -ShowFiles
-    #
-    #   Localization\           12021
-    #   ├─ En\                  1339
-    #      ├─ numbers.psd1      86
-    #      ├─ UserSettings.psd1 1253
-    #   ├─ En-US\               2025
-    #      ├─ Localization.psd1 958
-    #      ├─ numbers.psd1      67
-    #      ├─ UserSettings.psd1 1000
-    #   ├─ Localization.psd1    6698
-    #   ├─ UserSettings.psd1    1959
-    #
-    #.Example 
-    #   Get-TreeSize | Format-Custom
-    #
-    #   Localization\ (11.74 KB)
-    #   ├─ En\ (1.31 KB)
-    #   ├─ En-US\ (1.98 KB)    
+    # Localization\ (11.74 KB)
+    # |-- En-US\ (1.98 KB)
+    # |-- En\ (1.31 KB)
 
 	[CmdletBinding()]
     param(
@@ -55,7 +51,10 @@ function Get-TreeSize {
 
         # How deep to start the indent (hypothetically for splitting up the work)
         # Defaults to the number of elements in $Path.Split("\")
-        [int]$Depth = $((Convert-Path $Path).Split([Path]::DirectorySeparatorChar).Length)
+        [int]$Depth = $((Convert-Path $Path).Split([Path]::DirectorySeparatorChar).Length),
+
+        # Customize the TreeView
+        $ChildIndicator = $(([char[]]@(0x251c, 0x2500, " ")) -join "")
     )
     process {
         # I'm going to choose to show FileSystem paths here
@@ -65,13 +64,12 @@ function Get-TreeSize {
         $Local:Length = 0
 
         # Cache the recursive output so it comes out in the right order
-        $Children = @(
+        $Local:Children = @(
             switch(Get-ChildItem -Path $Local:Path -Force) {
                 {$_ -is [DirectoryInfo]} {
                     # Recurse! And don't forget to pass all the parameters down ...
                     $Info = Get-TreeSize -Path $_.FullName -ShowFiles:$ShowFiles -Depth ($Depth + 1)
                     # Running total ...
-                    # ROFL: this is the length of the array. stupid thing.
                     $Local:Length += $Info[0].Length
                     $Info
                 }
@@ -82,19 +80,30 @@ function Get-TreeSize {
                 }
             }
         )
-        @(
-            # After we recurse, we know the size of this object, and can output.
-            Get-Item -Path $Local:Path | Add-Member NoteProperty Length $Local:Length -Force -Passthru
-            # Now output the child items ... 
-            $Children
-        ) |
 
-            ForEach-Object { $_.PSTypeNames.Insert(0, "System.IO.TreeView"); $_ } |
-            Add-Member ScriptProperty Depth { $this.FullName.Split([Path]::DirectorySeparatorChar).Length } -Passthru -Force |
-            # NOTE: Even though this is a ScriptProperty
-            # We have to add it here, dynamically, instead of in a types file because we use $Depth
-            Add-Member ScriptProperty "TreeName" { ("   " * [Math]::Max(($this.Depth - $Depth -1), 0)) + $(if($this.Depth -ne $Depth){([char[]]@(0x251c, 0x2500, " ")) -join ""}) + $this.Name + $(if($this.PSIsContainer){"\"})} -Passthru -Force
+        # To allow us to sort the children by size, we need to collect them all so we can sort at each level of output
+        # Thus, if we're not the root invocation, roll-up the children
+        if(1 -lt (Get-PSCallStack | Where Command -eq $MyInvocation.MyCommand).Count) {
+            Get-Item -Path $Local:Path | Add-Member NoteProperty Length $Local:Length -Force -Passthru | Add-Member NoteProperty Children $Local:Children -Passthru
+        } else {
+            # This just outputs items and their .Children, recursively, sorted by length...
+            function UnrollChildren {
+                param($Items)
+                foreach($Item in @($Items)) {
+                    $Item
+                    if($Item.Children) {
+                        UnrollChildren ($Item.Children | Sort Length -Descending)
+                    }
+                }
+            }
 
+            UnrollChildren (Get-Item -Path $Local:Path | Add-Member NoteProperty Length $Local:Length -Force -Passthru | Add-Member NoteProperty Children $Local:Children -Passthru) |
+                ForEach-Object { $_.PSTypeNames.Insert(0, "System.IO.TreeView"); $_ } |
+                Add-Member ScriptProperty Depth { $this.FullName.Split([Path]::DirectorySeparatorChar).Length } -Passthru -Force |
+                # NOTE: Even though this is a ScriptProperty
+                # We have to add it here, dynamically, instead of in a types file because we use $Depth
+                Add-Member ScriptProperty "TreeName" { ("   " * [Math]::Max(($this.Depth - $Depth -1), 0)) + $(if($this.Depth -ne $Depth){$ChildIndicator}) + $this.Name + $(if($this.PSIsContainer){"\"})} -Passthru -Force
+        }
     }
 }
 
