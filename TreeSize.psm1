@@ -14,15 +14,15 @@ function Get-TreeSize {
     #   But with properties added to them like Depth and with Length calculated for the folders
     #   Then a custom formmatter makes them come out like this:
     #
-    #   PS> Get-TreeSize
+    #.Example 
+    #   Get-TreeSize
     #
     #   Localization\ 12021
     #   ├─ En\        1339
     #   ├─ En-US\     2025
     #
-    #  Or like this:
-    #
-    #   PS> Get-TreeSize -ShowFiles
+    #.Example
+    #   Get-TreeSize -ShowFiles
     #
     #   Localization\           12021
     #   ├─ En\                  1339
@@ -35,9 +35,8 @@ function Get-TreeSize {
     #   ├─ Localization.psd1    6698
     #   ├─ UserSettings.psd1    1959
     #
-    #  Or like this:
-    #
-    #   PS> Get-TreeSize | Format-Custom
+    #.Example 
+    #   Get-TreeSize | Format-Custom
     #
     #   Localization\ (11.74 KB)
     #   ├─ En\ (1.31 KB)
@@ -94,7 +93,7 @@ function Get-TreeSize {
             Add-Member ScriptProperty Depth { $this.FullName.Split([Path]::DirectorySeparatorChar).Length } -Passthru -Force |
             # NOTE: Even though this is a ScriptProperty
             # We have to add it here, dynamically, instead of in a types file because we use $Depth
-            Add-Member ScriptProperty "TreeName" { ("   " * [Math]::Max(($this.Depth - $Depth -1), 0)) + $(if($this.Depth -ne $Depth){"├─ "}) + $this.Name + $(if($this.PSIsContainer){"\"})} -Passthru -Force
+            Add-Member ScriptProperty "TreeName" { ("   " * [Math]::Max(($this.Depth - $Depth -1), 0)) + $(if($this.Depth -ne $Depth){([char[]]@(0x251c, 0x2500, " ")) -join ""}) + $this.Name + $(if($this.PSIsContainer){"\"})} -Passthru -Force
 
     }
 }
