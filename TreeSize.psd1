@@ -12,7 +12,7 @@
 RootModule = 'TreeSize.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0'
+ModuleVersion = '1.1'
 
 # ID used to uniquely identify this module
 GUID = '7c23eb22-93a3-4b2b-abcf-f6a33eec0adf'
@@ -60,14 +60,14 @@ PrivateData = @{
         LicenseUri = 'http://opensource.org/licenses/ms-pl'
 
         # A URL to the main website for this project.
-        # ProjectUri = ''
+        ProjectUri = 'https://github.com/Jaykul/TreeSize'
 
         # A URL to an icon representing this module.
         # IconUri = ''
 
         # ReleaseNotes of this module
         ReleaseNotes = @"
-        The first release!
+        The first release, but with the ProjectUri added.
         A working Get-TreeSize that outputs FileSystemInfo objects with Length populated for folders
         And some simple formatting to make it not stupid
 "@
