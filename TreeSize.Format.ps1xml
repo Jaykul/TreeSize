@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Configuration>
+    <ViewDefinitions>
+        <View>
+            <Name>System.IO.TreeView</Name>
+            <ViewSelectedBy>
+                <TypeName>System.IO.TreeView</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <HideTableHeaders/>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>TreeName</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Length</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+        <View>
+            <Name>TreeView</Name>
+            <ViewSelectedBy>
+                <TypeName>System.IO.TreeView</TypeName>
+                <SelectionSetName>TreeView</SelectionSetName>
+            </ViewSelectedBy>            
+            <CustomControl>
+                <CustomEntries>
+                    <CustomEntry>
+                        <CustomItem>
+                            <Frame>
+                                <LeftIndent>4</LeftIndent>
+                                <CustomItem>
+                                    <ExpressionBinding>
+                                        <PropertyName>TreeName</PropertyName>
+                                    </ExpressionBinding>
+                                    <Text> (</Text>
+                                    <ExpressionBinding>
+                                        <ScriptBlock>
+                                            if($_.Length -gt 1TB) {
+                                                "{0:N2} TB" -f ($_.Length/1TB)
+                                            } elseif($_.Length -gt 1GB) {
+                                                "{0:N2} GB" -f ($_.Length/1GB)
+                                            } elseif($_.Length -gt 1MB) {
+                                                "{0:N2} MB" -f ($_.Length/1MB)
+                                            } elseif($_.Length -gt 1KB) {
+                                                "{0:N2} KB" -f ($_.Length/1KB)
+                                            } else {
+                                                $_.Length
+                                            }
+                                        </ScriptBlock>
+                                    </ExpressionBinding>
+                                    <Text>) </Text>
+                                </CustomItem> 
+                            </Frame>
+                        </CustomItem>
+                    </CustomEntry>
+                </CustomEntries>
+            </CustomControl>
+        </View>
+        
+    </ViewDefinitions>
+</Configuration>
